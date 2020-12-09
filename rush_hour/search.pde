@@ -46,27 +46,40 @@ boolean searchNextState(HashMap hm, HashMap subHm, HashMap parentHm, int[][] sta
       if (state[i][j] == 0) continue;
       if (isMovableTo(state, i, j, RIGHT)) {
         int[][] copy = copyState(state);
-        moveTo(copy, i, state[i][j], RIGHT);
-        if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-        if (isFinish(copy, GOAL_COLUMN, T)) return true;
+        int slideNum = 0;
+        while (isMovableTo(copy, i, j + slideNum, RIGHT)) {
+          moveTo(copy, i, copy[i][j + slideNum], RIGHT);
+          if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+          if (isFinish(copy, GOAL_COLUMN, T)) return true;
+          slideNum++;
+        }
       }
       if (isMovableTo(state, i, j, LEFT)) {
         int[][] copy = copyState(state);
-        moveTo(copy, i, state[i][j], LEFT);
-        if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-        if (isFinish(copy, GOAL_COLUMN, T)) return true;
+        int slideNum = 0;
+        while (isMovableTo(copy, i, j - slideNum, LEFT)) {
+          moveTo(copy, i, copy[i][j - slideNum], LEFT);
+          if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+          slideNum++;
+        }
       }
       if (isMovableTo(state, i, j, DOWN)) {
         int[][] copy = copyState(state);
-        moveTo(copy, j, state[i][j], DOWN);
-        if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-        if (isFinish(copy, GOAL_COLUMN, T)) return true;
+        int slideNum = 0;
+        while (isMovableTo(copy, i + slideNum, j, DOWN)) {
+          moveTo(copy, j, copy[i + slideNum][j], DOWN);
+          if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+          slideNum++;
+        }
       }
       if (isMovableTo(state, i, j, UP)) {
         int[][] copy = copyState(state);
-        moveTo(copy, j, state[i][j], UP);
-        if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-        if (isFinish(copy, GOAL_COLUMN, T)) return true;
+        int slideNum = 0;
+        while (isMovableTo(copy, i - slideNum, j, UP)) {
+          moveTo(copy, j, copy[i - slideNum][j], UP);
+          if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+          slideNum++;
+        }
       }
     }
   }

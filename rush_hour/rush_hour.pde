@@ -4,7 +4,7 @@ import java.util.HashMap;
 void setup() {
 
   // input
-  String filename = "board2.txt";
+  String filename = "board12.txt";
   String inputfile = "input/" + filename;
   String[] txt = loadStrings(inputfile);
   GAME_SIZE = txt.length;

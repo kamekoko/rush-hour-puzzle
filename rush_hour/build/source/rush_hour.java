@@ -21,67 +21,40 @@ public class rush_hour extends PApplet {
 
 
 public void setup() {
-  
-  background(0);
-  printState(input);
-  println("start" + "\n");
+
+  // input
+  String filename = "board12.txt";
+  String inputfile = "input/" + filename;
+  String[] txt = loadStrings(inputfile);
+  GAME_SIZE = txt.length;
+  int[][] startState = convertStringToState(txt);
+  printState(startState);
+  setGoal(startState);
+
+  // output
+  String savefile = "output/" + filename;
+  PrintWriter output = createWriter(savefile);
 
   HashMap<String, Integer> hm = new HashMap<String, Integer>();
   HashMap<String, String> parentHm = new HashMap<String, String>();
-  int depth = 0;
-  hm.put(convertStateToString(input), depth);
-  int start = millis();
+  hm.put(convertStateToString(startState), 0);
 
   // serch
-  while(true) {
-    boolean finish = false;
-    HashMap<String, Integer> subHm = new HashMap<String, Integer>();
-    for (Map.Entry me : hm.entrySet()) {
-      if (depth != PApplet.parseInt(me.getValue().toString())) continue;
-      String str = "" + me.getKey();
-      int[][] newState = convertStringToState(str);
-      if (searchNextState(hm, subHm, parentHm, newState, depth)) {
-        finish = true;
-        break;
-      }
-    }
-    for (Map.Entry me : subHm.entrySet()) {
-      hm.put("" + me.getKey(), PApplet.parseInt(me.getValue().toString()));
-    }
-    depth++;
-    if (finish) break;
-    if (subHm.size() <= 0) {
-      println("no answer");
-      break;
-    }
-  }
-
+  int start = millis();
+  int depth = search(hm, parentHm);
   int time = millis() - start;
 
-  // checkPath(hm, parentHm);
-  ArrayList<String> path = new ArrayList<String>();
-  for (Map.Entry me : hm.entrySet()) {
-    String str = me.getKey().toString();
-    int[][] state = convertStringToState(str);
-    if (isFinish(state, GOAL_COLUMN, T)) {
-      path.add(str);
-      while(true) {
-        if (! parentHm.containsKey(str)) break;
-        String parentStr = parentHm.get(str);
-        path.add(0, parentStr);
-        str = parentStr;
-      }
-    }
-  }
+  // check path
+  ArrayList<String> path = getPath(hm, parentHm);
 
-  for (String s : path) {
-    printState(convertStringToState(s));
-  }
+  output.println("count : " + depth);
+  output.println("node  : " + hm.size());
+  output.println("time  : " + time + "ms" + "\n");
+  for (String s : path) output.println(s);
+  output.flush();
+  output.close();
 
-  println("count : " + depth);
-  println("total node num : " + hm.size());
-  println("time : " + time + "ms");
-
+  println("finished");
   exit();
 }
 
@@ -89,40 +62,9 @@ public void setup() {
 //
 // }
 // Game
-final int GAME_SIZE = 6;
-
-final int GOAL_COLUMN = 2;
-
-// input1
-// final int T = 6;
-// int[][] input =
-//   {{ 0, 0, 0, 1, 0, 0},
-//    { 2, 0, 0, 1, 3, 3},
-//    { 2, T, T, 0, 4, 0},
-//    { 2, 0, 0, 0, 4, 0},
-//    { 0, 0, 0, 0, 4, 0},
-//    { 0, 0, 0, 0, 5, 5}};
-
-// input2
-// final int T = 12;
-// int[][] input =
-//   {{ 0, 1, 2, 2, 3, 3},
-//    { 0, 1, 4, 4, 0, 5},
-//    { 0, 1, 6, T, T, 5},
-//    { 7, 7, 6, 8, 0, 5},
-//    { 0, 0, 9, 8,10,10},
-//    {11,11, 9, 0, 0, 0}};
-
-// input3
-final int T = 10;
-int[][] input =
-  {{ 1, 1, 2, 0, 3, 0},
-   { 0, 4, 2, 0, 3, 0},
-   { 0, 4, T, T, 3, 0},
-   { 0, 0, 5, 6, 6, 0},
-   { 0, 0, 5, 7, 8, 8},
-   { 9, 9, 9, 7, 0, 0}};
-
+int GAME_SIZE;
+int GOAL_COLUMN;
+int T; // target
 
 // search
 final int RIGHT = 0;
@@ -156,33 +98,138 @@ public int[][] convertStringToState(String str) {
   }
   return state;
 }
+
+public int[][] convertStringToState(String[] str) {
+  int[][] state = new int[GAME_SIZE][GAME_SIZE];
+
+  for (int i = 0; i < str.length; i++) {
+    String[] data = split(str[i], ",");
+    for (int j = 0; j < data.length - 1; j++) {
+      state[i][j] = PApplet.parseInt(data[j]);
+    }
+  }
+  return state;
+}
+public void setGoal(int[][] state) {
+  int max = 0;
+  for (int i = 0; i < state.length; i++) {
+    for (int j = 0; j < state.length; j++) {
+      int val = state[i][j];
+      if (max < val) {
+        max = val;
+        GOAL_COLUMN = i;
+      }
+    }
+  }
+  GAME_SIZE = state.length;
+  T = max;
+}
+
+public int search(HashMap<String, Integer> hm, HashMap<String, String> parentHm) {
+  int depth = 0;
+  while(true) {
+    boolean finish = false;
+    HashMap<String, Integer> subHm = new HashMap<String, Integer>();
+    for (Map.Entry me : hm.entrySet()) {
+      if (depth != PApplet.parseInt(me.getValue().toString())) continue;
+      String str = "" + me.getKey();
+      int[][] newState = convertStringToState(str);
+      if (searchNextState(hm, subHm, parentHm, newState, depth)) {
+        finish = true;
+        break;
+      }
+    }
+    for (Map.Entry me : subHm.entrySet()) {
+      hm.put("" + me.getKey(), PApplet.parseInt(me.getValue().toString()));
+    }
+    depth++;
+    if (finish) break;
+    if (subHm.size() <= 0) {
+      println("no answer");
+      break;
+    }
+  }
+  return depth;
+}
+
+// boolean searchNextState(HashMap hm, HashMap subHm, HashMap parentHm, int[][] state, int depth) { //Hash h
+//   for (int i = 0; i < state.length; i++) {
+//     for (int j = 0; j < state.length; j++) {
+//       if (state[i][j] == 0) continue;
+//       if (isMovableTo(state, i, j, RIGHT)) {
+//         int[][] copy = copyState(state);
+//         moveTo(copy, i, state[i][j], RIGHT);
+//         if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+//         if (isFinish(copy, GOAL_COLUMN, T)) return true;
+//       }
+//       if (isMovableTo(state, i, j, LEFT)) {
+//         int[][] copy = copyState(state);
+//         moveTo(copy, i, state[i][j], LEFT);
+//         if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+//         if (isFinish(copy, GOAL_COLUMN, T)) return true;
+//       }
+//       if (isMovableTo(state, i, j, DOWN)) {
+//         int[][] copy = copyState(state);
+//         moveTo(copy, j, state[i][j], DOWN);
+//         if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+//         if (isFinish(copy, GOAL_COLUMN, T)) return true;
+//       }
+//       if (isMovableTo(state, i, j, UP)) {
+//         int[][] copy = copyState(state);
+//         moveTo(copy, j, state[i][j], UP);
+//         if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+//         if (isFinish(copy, GOAL_COLUMN, T)) return true;
+//       }
+//     }
+//   }
+//   return false;
+// }
+//
+boolean one = false;
+
 public boolean searchNextState(HashMap hm, HashMap subHm, HashMap parentHm, int[][] state, int depth) { //Hash h
   for (int i = 0; i < state.length; i++) {
     for (int j = 0; j < state.length; j++) {
       if (state[i][j] == 0) continue;
       if (isMovableTo(state, i, j, RIGHT)) {
         int[][] copy = copyState(state);
-        moveTo(copy, i, state[i][j], RIGHT);
-        if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-        if (isFinish(copy, GOAL_COLUMN, T)) return true;
+        int slideNum = 0;
+        while (isMovableTo(copy, i, j + slideNum, RIGHT)) {
+          moveTo(copy, i, copy[i][j + slideNum], RIGHT);
+          if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+          if (isFinish(copy, GOAL_COLUMN, T)) return true;
+          slideNum++;
+        }
       }
       if (isMovableTo(state, i, j, LEFT)) {
         int[][] copy = copyState(state);
-        moveTo(copy, i, state[i][j], LEFT);
-        if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-        if (isFinish(copy, GOAL_COLUMN, T)) return true;
+        int slideNum = 0;
+        while (isMovableTo(copy, i, j - slideNum, LEFT)) {
+          moveTo(copy, i, copy[i][j - slideNum], LEFT);
+          if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+          // if (isFinish(copy, GOAL_COLUMN, T)) return true;
+          slideNum++;
+        }
       }
       if (isMovableTo(state, i, j, DOWN)) {
         int[][] copy = copyState(state);
-        moveTo(copy, j, state[i][j], DOWN);
-        if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-        if (isFinish(copy, GOAL_COLUMN, T)) return true;
+        int slideNum = 0;
+        while (isMovableTo(copy, i + slideNum, j, DOWN)) {
+          moveTo(copy, j, copy[i + slideNum][j], DOWN);
+          if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+          // if (isFinish(copy, GOAL_COLUMN, T)) return true;
+          slideNum++;
+        }
       }
       if (isMovableTo(state, i, j, UP)) {
         int[][] copy = copyState(state);
-        moveTo(copy, j, state[i][j], UP);
-        if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-        if (isFinish(copy, GOAL_COLUMN, T)) return true;
+        int slideNum = 0;
+        while (isMovableTo(copy, i - slideNum, j, UP)) {
+          moveTo(copy, j, copy[i - slideNum][j], UP);
+          if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+          // if (isFinish(copy, GOAL_COLUMN, T)) return true;
+          slideNum++;
+        }
       }
     }
   }
@@ -294,6 +341,24 @@ public void moveTo(int[][] state, int line, int car, int direction) {
   }
 }
 
+public ArrayList<String> getPath(HashMap<String, Integer> hm, HashMap<String, String> parentHm) {
+  ArrayList<String> path = new ArrayList<String>();
+  for (Map.Entry me : hm.entrySet()) {
+    String str = me.getKey().toString();
+    int[][] state = convertStringToState(str);
+    if (isFinish(state, GOAL_COLUMN, T)) {
+      path.add(str);
+      while(true) {
+        if (! parentHm.containsKey(str)) break;
+        String parentStr = parentHm.get(str);
+        path.add(0, parentStr);
+        str = parentStr;
+      }
+    }
+  }
+  return path;
+}
+
 public void printState(int[][] state) {
   for (int[] s : state) {
     for (int ss : s) print(ss + ",");
@@ -328,7 +393,6 @@ public void printState(int[][] state) {
 //     printState(convertStringToState(s));
 //   }
 // }
-  public void settings() {  size(1500, 1500); }
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "rush_hour" };
     if (passedArgs != null) {
