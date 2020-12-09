@@ -1,6 +1,6 @@
 // Game
-final int GAME_SIZE = 6;
-final int GOAL_COLUMN = 2;
+int GAME_SIZE;
+int GOAL_COLUMN;
 int T; // target
 
 // search

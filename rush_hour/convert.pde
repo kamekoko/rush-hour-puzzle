@@ -37,13 +37,3 @@ int[][] convertStringToState(String[] str) {
   }
   return state;
 }
-
-int getTarget(int[][] state) {
-  int max = 0;
-  for (int[] c : state) {
-    for (int r : c) {
-      max = max(max, r);
-    }
-  }
-  return max;
-}

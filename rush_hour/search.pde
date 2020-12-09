@@ -1,3 +1,45 @@
+void setGoal(int[][] state) {
+  int max = 0;
+  for (int i = 0; i < state.length; i++) {
+    for (int j = 0; j < state.length; j++) {
+      int val = state[i][j];
+      if (max < val) {
+        max = val;
+        GOAL_COLUMN = i;
+      }
+    }
+  }
+  GAME_SIZE = state.length;
+  T = max;
+}
+
+int search(HashMap<String, Integer> hm, HashMap<String, String> parentHm) {
+  int depth = 0;
+  while(true) {
+    boolean finish = false;
+    HashMap<String, Integer> subHm = new HashMap<String, Integer>();
+    for (Map.Entry me : hm.entrySet()) {
+      if (depth != int(me.getValue().toString())) continue;
+      String str = "" + me.getKey();
+      int[][] newState = convertStringToState(str);
+      if (searchNextState(hm, subHm, parentHm, newState, depth)) {
+        finish = true;
+        break;
+      }
+    }
+    for (Map.Entry me : subHm.entrySet()) {
+      hm.put("" + me.getKey(), int(me.getValue().toString()));
+    }
+    depth++;
+    if (finish) break;
+    if (subHm.size() <= 0) {
+      println("no answer");
+      break;
+    }
+  }
+  return depth;
+}
+
 boolean searchNextState(HashMap hm, HashMap subHm, HashMap parentHm, int[][] state, int depth) { //Hash h
   for (int i = 0; i < state.length; i++) {
     for (int j = 0; j < state.length; j++) {
@@ -136,6 +178,24 @@ void moveTo(int[][] state, int line, int car, int direction) {
   }
 }
 
+ArrayList<String> getPath(HashMap<String, Integer> hm, HashMap<String, String> parentHm) {
+  ArrayList<String> path = new ArrayList<String>();
+  for (Map.Entry me : hm.entrySet()) {
+    String str = me.getKey().toString();
+    int[][] state = convertStringToState(str);
+    if (isFinish(state, GOAL_COLUMN, T)) {
+      path.add(str);
+      while(true) {
+        if (! parentHm.containsKey(str)) break;
+        String parentStr = parentHm.get(str);
+        path.add(0, parentStr);
+        str = parentStr;
+      }
+    }
+  }
+  return path;
+}
+
 void printState(int[][] state) {
   for (int[] s : state) {
     for (int ss : s) print(ss + ",");
@@ -143,30 +203,3 @@ void printState(int[][] state) {
   }
   println();
 }
-
-// void checkPath(HashMap hm, HashMap pathHm) {
-//   ArrayList<String> path = new ArrayList<String>();
-//
-//   for (Map.Entry me : hm.entrySet()) {
-//     String str = me.getKey().toString();
-//     int[][] state = convertStringToState(str);
-//     if (isFinish(state, GOAL_COLUMN, T)) {
-//       path.add(str);
-//       while(true) {
-//         if (! parentHm.containsKey(str)) break;
-//         for (Map.Entry me2 : pathHm.entrySet()) {
-//           if (me.getKey == me2.getKey) {
-//             String parentStr = me2.getValue.toString();
-//             path.add(0, parentStr);
-//             str = parentStr;
-//             break;
-//           }
-//         }
-//       }
-//     }
-//   }
-//
-//   for (String s : path) {
-//     printState(convertStringToState(s));
-//   }
-// }
