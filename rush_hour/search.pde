@@ -1,65 +1,38 @@
-// void search(HashMap hm) {
-//   int depth = 0;
-//
-//   while(true) {
-//     boolean finish = false;
-//     for (Map.Entry me : hm.entrySet()) {
-//       if (depth != int(me.getValue().toString())) continue;
-//       String str = "" + me.getKey();
-//       int[][] newState = convertStringToState(str);
-//       if (searchNextState(hm, newState,depth)) {
-//         finish = true;
-//         break;
-//       }
-//     }
-//     if (finish) break;
-//     depth++;
-//   }
-// }
-
-boolean searchNextState(HashMap hm, HashMap subHm, int[][] state, int depth) { //Hash h
+boolean searchNextState(HashMap hm, HashMap subHm, HashMap parentHm, int[][] state, int depth) { //Hash h
   for (int i = 0; i < state.length; i++) {
     for (int j = 0; j < state.length; j++) {
       if (state[i][j] == 0) continue;
       if (isMovableTo(state, i, j, RIGHT)) {
         int[][] copy = copyState(state);
         moveTo(copy, i, state[i][j], RIGHT);
-        String str = convertStateToString(copy);
-        if (! hm.containsKey(str) && ! subHm.containsKey(str)) {
-          subHm.put(str, depth + 1);
-          if (isFinish(copy, GOAL_COLUMN, T)) return true;
-        }
+        if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+        if (isFinish(copy, GOAL_COLUMN, T)) return true;
       }
       if (isMovableTo(state, i, j, LEFT)) {
         int[][] copy = copyState(state);
         moveTo(copy, i, state[i][j], LEFT);
-        String str = convertStateToString(copy);
-        if (! hm.containsKey(str) && ! subHm.containsKey(str)) {
-          subHm.put(str, depth + 1);
-          if (isFinish(copy, GOAL_COLUMN, T)) return true;
-        }
+        if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+        if (isFinish(copy, GOAL_COLUMN, T)) return true;
       }
       if (isMovableTo(state, i, j, DOWN)) {
         int[][] copy = copyState(state);
         moveTo(copy, j, state[i][j], DOWN);
-        String str = convertStateToString(copy);
-        if (! hm.containsKey(str) && ! subHm.containsKey(str)) {
-          subHm.put(str, depth + 1);
-          if (isFinish(copy, GOAL_COLUMN, T)) return true;
-        }
+        if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+        if (isFinish(copy, GOAL_COLUMN, T)) return true;
       }
       if (isMovableTo(state, i, j, UP)) {
         int[][] copy = copyState(state);
         moveTo(copy, j, state[i][j], UP);
-        String str = convertStateToString(copy);
-        if (! hm.containsKey(str) && ! subHm.containsKey(str)) {
-          subHm.put(str, depth + 1);
-          if (isFinish(copy, GOAL_COLUMN, T)) return true;
-        }
+        if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
+        if (isFinish(copy, GOAL_COLUMN, T)) return true;
       }
     }
   }
   return false;
+}
+
+boolean isFinish(int[][] state, int column, int target) {
+  return (state[column][state.length - 1] == target);
 }
 
 boolean isMovableTo(int[][] state, int i, int j, int direction) {
@@ -80,6 +53,29 @@ boolean isMovableTo(int[][] state, int i, int j, int direction) {
     if (state[i - 1][j] != 0 || state[i + 1][j] != state[i][j]) return false;
   }
   return true;
+}
+
+boolean put(HashMap hm, HashMap subHm, int[][] state, int depth) {
+  String str = convertStateToString(state);
+  if (hm.containsKey(str) || subHm.containsKey(str)) return false;
+  subHm.put(str, depth + 1);
+  return true;
+}
+
+int[][] copyState(int[][] s) {
+  int[][] ans = new int[s.length][s[0].length];
+  for (int i = 0; i < s.length; i++) {
+    for (int j = 0; j < s[i].length; j++) {
+      ans[i][j] = s[i][j];
+    }
+  }
+  return ans;
+}
+
+void putParent(HashMap parentHm, int[][] parentState, int[][] newState) {
+  String parentStr = convertStateToString(parentState);
+  String newStr = convertStateToString(newState);
+  parentHm.put(newStr, parentStr);
 }
 
 void moveTo(int[][] state, int line, int car, int direction) {
@@ -140,21 +136,6 @@ void moveTo(int[][] state, int line, int car, int direction) {
   }
 }
 
-boolean isFinish(int[][] state, int column, int target) {
-  if (state[column][state.length - 1] == target) printState(state);
-  return (state[column][state.length - 1] == target);
-}
-
-int[][] copyState(int[][] s) {
-  int[][] ans = new int[s.length][s[0].length];
-  for (int i = 0; i < s.length; i++) {
-    for (int j = 0; j < s[i].length; j++) {
-      ans[i][j] = s[i][j];
-    }
-  }
-  return ans;
-}
-
 void printState(int[][] state) {
   for (int[] s : state) {
     for (int ss : s) print(ss + ",");
@@ -162,3 +143,30 @@ void printState(int[][] state) {
   }
   println();
 }
+
+// void checkPath(HashMap hm, HashMap pathHm) {
+//   ArrayList<String> path = new ArrayList<String>();
+//
+//   for (Map.Entry me : hm.entrySet()) {
+//     String str = me.getKey().toString();
+//     int[][] state = convertStringToState(str);
+//     if (isFinish(state, GOAL_COLUMN, T)) {
+//       path.add(str);
+//       while(true) {
+//         if (! parentHm.containsKey(str)) break;
+//         for (Map.Entry me2 : pathHm.entrySet()) {
+//           if (me.getKey == me2.getKey) {
+//             String parentStr = me2.getValue.toString();
+//             path.add(0, parentStr);
+//             str = parentStr;
+//             break;
+//           }
+//         }
+//       }
+//     }
+//   }
+//
+//   for (String s : path) {
+//     printState(convertStringToState(s));
+//   }
+// }

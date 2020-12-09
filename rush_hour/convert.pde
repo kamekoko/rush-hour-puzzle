@@ -25,3 +25,25 @@ int[][] convertStringToState(String str) {
   }
   return state;
 }
+
+int[][] convertStringToState(String[] str) {
+  int[][] state = new int[GAME_SIZE][GAME_SIZE];
+
+  for (int i = 0; i < str.length; i++) {
+    String[] data = split(str[i], ",");
+    for (int j = 0; j < data.length - 1; j++) {
+      state[i][j] = int(data[j]);
+    }
+  }
+  return state;
+}
+
+int getTarget(int[][] state) {
+  int max = 0;
+  for (int[] c : state) {
+    for (int r : c) {
+      max = max(max, r);
+    }
+  }
+  return max;
+}
