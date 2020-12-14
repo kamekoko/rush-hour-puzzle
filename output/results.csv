@@ -1,4 +1,4 @@
-input,bfs-depth,dfs-depth,bfs-time,dfs-time
+input,bfs-depth(解の手数),dfs-depth(解の手数),bfs-time(ms),dfs-time(ms)
 board1,22,1262,106,85
 board2,23,1124,79,30
 board3,10,1424,303,23
