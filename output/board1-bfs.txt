@@ -1,6 +1,6 @@
-count : 22
+depth : 22
 node  : 2196
-time  : 106ms
+time  : 125ms
 
 1,1,2,0,3,0,
 0,4,2,0,3,0,
