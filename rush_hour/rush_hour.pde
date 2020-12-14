@@ -3,37 +3,48 @@ import java.util.HashMap;
 
 void setup() {
 
-  // input
-  String filename = "board12.txt";
-  String inputfile = "input/" + filename;
-  String[] txt = loadStrings(inputfile);
-  GAME_SIZE = txt.length;
-  int[][] startState = convertStringToState(txt);
-  printState(startState);
-  setGoal(startState);
+  for (int k = 13; k < 21; k++) {
 
-  // output
-  String savefile = "output/" + filename;
-  PrintWriter output = createWriter(savefile);
+    // input
+    String filename = "board" + k;
+    String inputfile = "../input/" + filename + ".txt";
+    String[] txt = loadStrings(inputfile);
+    GAME_SIZE = txt.length;
+    int[][] startState = convertStringToState(txt);
+    printState(startState);
+    setGoal(startState);
 
-  HashMap<String, Integer> hm = new HashMap<String, Integer>();
-  HashMap<String, String> parentHm = new HashMap<String, String>();
-  hm.put(convertStateToString(startState), 0);
+    // output
+    String savefile = "../output/breadth-first/" + filename + "-bfs.txt";
+    PrintWriter output = createWriter(savefile);
 
-  // serch
-  int start = millis();
-  int depth = search(hm, parentHm);
-  int time = millis() - start;
+    HashMap<String, Integer> hm = new HashMap<String, Integer>();
+    HashMap<String, String> parentHm = new HashMap<String, String>();
+    hm.put(convertStateToString(startState), 0);
+    int depth = 0;
 
-  // check path
-  ArrayList<String> path = getPath(hm, parentHm);
+    // serch
+    int repeat = 10;
+    int start = millis();
+    for (int i = 0; i < repeat; i++) {
+      hm = new HashMap<String, Integer>();
+      parentHm = new HashMap<String, String>();
+      hm.put(convertStateToString(startState), 0);
+      depth = search(hm, parentHm);
+    }
+    int time = millis() - start;
 
-  output.println("count : " + depth);
-  output.println("node  : " + hm.size());
-  output.println("time  : " + time + "ms" + "\n");
-  for (String s : path) output.println(s);
-  output.flush();
-  output.close();
+    // check path
+    ArrayList<String> path = getPath(hm, parentHm);
+
+    output.println("count : " + depth);
+    output.println("node  : " + hm.size());
+    output.println("time  : " + int(time / repeat) + "ms" + "\n");
+    for (String s : path) output.println(s);
+    output.flush();
+    output.close();
+
+  }
 
   println("finished");
   exit();

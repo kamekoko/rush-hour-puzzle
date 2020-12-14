@@ -41,6 +41,8 @@ int search(HashMap<String, Integer> hm, HashMap<String, String> parentHm) {
 }
 
 boolean searchNextState(HashMap hm, HashMap subHm, HashMap parentHm, int[][] state, int depth) { //Hash h
+  if (nextIsGoal(hm,subHm, parentHm, state, depth)) return true;
+
   for (int i = 0; i < state.length; i++) {
     for (int j = 0; j < state.length; j++) {
       if (state[i][j] == 0) continue;
@@ -90,6 +92,22 @@ boolean isFinish(int[][] state, int column, int target) {
   return (state[column][state.length - 1] == target);
 }
 
+boolean nextIsGoal(HashMap hm, HashMap subHm, HashMap parentHm, int[][] state, int depth) {
+  int j = getTargetRow(state);
+  if (isMovableTo(state, GOAL_COLUMN, j, RIGHT)) {
+    int[][] copy = copyState(state);
+    int moveWid = state.length - 1 - j;
+    for (int k = 0; k < moveWid; k++) {
+      if (! isMovableTo(copy, GOAL_COLUMN, j + k, RIGHT)) return false;
+      moveTo(copy, GOAL_COLUMN, copy[GOAL_COLUMN][j + k], RIGHT);
+    }
+    put(hm, subHm, copy, depth);
+    putParent(parentHm, state, copy);
+    return true;
+  }
+  return false;
+}
+
 boolean isMovableTo(int[][] state, int i, int j, int direction) {
   if (direction == RIGHT) {
     if (j == 0 || j == GAME_SIZE - 1) return false;
@@ -115,6 +133,14 @@ boolean put(HashMap hm, HashMap subHm, int[][] state, int depth) {
   if (hm.containsKey(str) || subHm.containsKey(str)) return false;
   subHm.put(str, depth + 1);
   return true;
+}
+
+int getTargetRow(int[][] state) {
+  int row = 0;
+  for (int j = 0; j < state.length; j++) {
+    row = (state[GOAL_COLUMN][j] == T) ? j : row;
+  }
+  return row;
 }
 
 int[][] copyState(int[][] s) {

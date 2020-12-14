@@ -1,0 +1,18 @@
+count : 1707
+node  : 1851
+time  : 150ms
+count : 1498
+node  : 1717
+time  : 93ms
+count : 1704
+node  : 1726
+time  : 70ms
+count : 1360
+node  : 1740
+time  : 105ms
+
+Ave depth : 1567
+Ave node  : 1758
+Ave time  : 104ms
+
+max depth : 1707

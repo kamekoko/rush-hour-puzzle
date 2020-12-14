@@ -22,37 +22,48 @@ public class rush_hour extends PApplet {
 
 public void setup() {
 
-  // input
-  String filename = "board12.txt";
-  String inputfile = "input/" + filename;
-  String[] txt = loadStrings(inputfile);
-  GAME_SIZE = txt.length;
-  int[][] startState = convertStringToState(txt);
-  printState(startState);
-  setGoal(startState);
+  for (int k = 13; k < 21; k++) {
 
-  // output
-  String savefile = "output/" + filename;
-  PrintWriter output = createWriter(savefile);
+    // input
+    String filename = "board" + k;
+    String inputfile = "input/" + filename + ".txt";
+    String[] txt = loadStrings(inputfile);
+    GAME_SIZE = txt.length;
+    int[][] startState = convertStringToState(txt);
+    printState(startState);
+    setGoal(startState);
 
-  HashMap<String, Integer> hm = new HashMap<String, Integer>();
-  HashMap<String, String> parentHm = new HashMap<String, String>();
-  hm.put(convertStateToString(startState), 0);
+    // output
+    String savefile = "../output/breadth-first/" + filename + "-bfs.txt";
+    PrintWriter output = createWriter(savefile);
 
-  // serch
-  int start = millis();
-  int depth = search(hm, parentHm);
-  int time = millis() - start;
+    HashMap<String, Integer> hm = new HashMap<String, Integer>();
+    HashMap<String, String> parentHm = new HashMap<String, String>();
+    hm.put(convertStateToString(startState), 0);
+    int depth = 0;
 
-  // check path
-  ArrayList<String> path = getPath(hm, parentHm);
+    // serch
+    int repeat = 10;
+    int start = millis();
+    for (int i = 0; i < repeat; i++) {
+      hm = new HashMap<String, Integer>();
+      parentHm = new HashMap<String, String>();
+      hm.put(convertStateToString(startState), 0);
+      depth = search(hm, parentHm);
+    }
+    int time = millis() - start;
 
-  output.println("count : " + depth);
-  output.println("node  : " + hm.size());
-  output.println("time  : " + time + "ms" + "\n");
-  for (String s : path) output.println(s);
-  output.flush();
-  output.close();
+    // check path
+    ArrayList<String> path = getPath(hm, parentHm);
+
+    output.println("count : " + depth);
+    output.println("node  : " + hm.size());
+    output.println("time  : " + PApplet.parseInt(time / repeat) + "ms" + "\n");
+    for (String s : path) output.println(s);
+    output.flush();
+    output.close();
+
+  }
 
   println("finished");
   exit();
@@ -152,42 +163,9 @@ public int search(HashMap<String, Integer> hm, HashMap<String, String> parentHm)
   return depth;
 }
 
-// boolean searchNextState(HashMap hm, HashMap subHm, HashMap parentHm, int[][] state, int depth) { //Hash h
-//   for (int i = 0; i < state.length; i++) {
-//     for (int j = 0; j < state.length; j++) {
-//       if (state[i][j] == 0) continue;
-//       if (isMovableTo(state, i, j, RIGHT)) {
-//         int[][] copy = copyState(state);
-//         moveTo(copy, i, state[i][j], RIGHT);
-//         if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-//         if (isFinish(copy, GOAL_COLUMN, T)) return true;
-//       }
-//       if (isMovableTo(state, i, j, LEFT)) {
-//         int[][] copy = copyState(state);
-//         moveTo(copy, i, state[i][j], LEFT);
-//         if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-//         if (isFinish(copy, GOAL_COLUMN, T)) return true;
-//       }
-//       if (isMovableTo(state, i, j, DOWN)) {
-//         int[][] copy = copyState(state);
-//         moveTo(copy, j, state[i][j], DOWN);
-//         if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-//         if (isFinish(copy, GOAL_COLUMN, T)) return true;
-//       }
-//       if (isMovableTo(state, i, j, UP)) {
-//         int[][] copy = copyState(state);
-//         moveTo(copy, j, state[i][j], UP);
-//         if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-//         if (isFinish(copy, GOAL_COLUMN, T)) return true;
-//       }
-//     }
-//   }
-//   return false;
-// }
-//
-boolean one = false;
-
 public boolean searchNextState(HashMap hm, HashMap subHm, HashMap parentHm, int[][] state, int depth) { //Hash h
+  if (nextIsGoal(hm,subHm, parentHm, state, depth)) return true;
+
   for (int i = 0; i < state.length; i++) {
     for (int j = 0; j < state.length; j++) {
       if (state[i][j] == 0) continue;
@@ -207,7 +185,6 @@ public boolean searchNextState(HashMap hm, HashMap subHm, HashMap parentHm, int[
         while (isMovableTo(copy, i, j - slideNum, LEFT)) {
           moveTo(copy, i, copy[i][j - slideNum], LEFT);
           if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-          // if (isFinish(copy, GOAL_COLUMN, T)) return true;
           slideNum++;
         }
       }
@@ -217,7 +194,6 @@ public boolean searchNextState(HashMap hm, HashMap subHm, HashMap parentHm, int[
         while (isMovableTo(copy, i + slideNum, j, DOWN)) {
           moveTo(copy, j, copy[i + slideNum][j], DOWN);
           if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-          // if (isFinish(copy, GOAL_COLUMN, T)) return true;
           slideNum++;
         }
       }
@@ -227,7 +203,6 @@ public boolean searchNextState(HashMap hm, HashMap subHm, HashMap parentHm, int[
         while (isMovableTo(copy, i - slideNum, j, UP)) {
           moveTo(copy, j, copy[i - slideNum][j], UP);
           if (put(hm, subHm, copy, depth)) putParent(parentHm, state, copy);
-          // if (isFinish(copy, GOAL_COLUMN, T)) return true;
           slideNum++;
         }
       }
@@ -238,6 +213,22 @@ public boolean searchNextState(HashMap hm, HashMap subHm, HashMap parentHm, int[
 
 public boolean isFinish(int[][] state, int column, int target) {
   return (state[column][state.length - 1] == target);
+}
+
+public boolean nextIsGoal(HashMap hm, HashMap subHm, HashMap parentHm, int[][] state, int depth) {
+  int j = getTargetRow(state);
+  if (isMovableTo(state, GOAL_COLUMN, j, RIGHT)) {
+    int[][] copy = copyState(state);
+    int moveWid = state.length - 1 - j;
+    for (int k = 0; k < moveWid; k++) {
+      if (! isMovableTo(copy, GOAL_COLUMN, j + k, RIGHT)) return false;
+      moveTo(copy, GOAL_COLUMN, copy[GOAL_COLUMN][j + k], RIGHT);
+    }
+    put(hm, subHm, copy, depth);
+    putParent(parentHm, state, copy);
+    return true;
+  }
+  return false;
 }
 
 public boolean isMovableTo(int[][] state, int i, int j, int direction) {
@@ -265,6 +256,14 @@ public boolean put(HashMap hm, HashMap subHm, int[][] state, int depth) {
   if (hm.containsKey(str) || subHm.containsKey(str)) return false;
   subHm.put(str, depth + 1);
   return true;
+}
+
+public int getTargetRow(int[][] state) {
+  int row = 0;
+  for (int j = 0; j < state.length; j++) {
+    row = (state[GOAL_COLUMN][j] == T) ? j : row;
+  }
+  return row;
 }
 
 public int[][] copyState(int[][] s) {
@@ -366,33 +365,6 @@ public void printState(int[][] state) {
   }
   println();
 }
-
-// void checkPath(HashMap hm, HashMap pathHm) {
-//   ArrayList<String> path = new ArrayList<String>();
-//
-//   for (Map.Entry me : hm.entrySet()) {
-//     String str = me.getKey().toString();
-//     int[][] state = convertStringToState(str);
-//     if (isFinish(state, GOAL_COLUMN, T)) {
-//       path.add(str);
-//       while(true) {
-//         if (! parentHm.containsKey(str)) break;
-//         for (Map.Entry me2 : pathHm.entrySet()) {
-//           if (me.getKey == me2.getKey) {
-//             String parentStr = me2.getValue.toString();
-//             path.add(0, parentStr);
-//             str = parentStr;
-//             break;
-//           }
-//         }
-//       }
-//     }
-//   }
-//
-//   for (String s : path) {
-//     printState(convertStringToState(s));
-//   }
-// }
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "rush_hour" };
     if (passedArgs != null) {
